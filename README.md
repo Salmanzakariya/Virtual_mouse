@@ -1,2 +1,46 @@
 # Virtual_mouse
-A virtual mouse in Python using OpenCV, Mediapipe, and Autopy leverages computer vision to track hand movements and gestures via a webcam. OpenCV captures video, Mediapipe detects hand landmarks, and Autopy simulates mouse actions, enabling control of the cursor without physical input devices.
+import cv2
+import mediapipe as mp
+import pyautogui
+
+
+cam=cv2.VideoCapture(0)
+hand_dectetor=mp.solutions.hands.Hands()
+drawing=mp.solutions.drawing_utils
+screen_width,screen_height=pyautogui.size()
+index_y=0
+while True:
+    _,frame=cam.read()
+    frame=cv2.flip(frame,1)
+    frame_height , frame_width,_ =frame.shape
+    rgbframe=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+    Output=hand_dectetor.process(rgbframe)
+    hands=Output.multi_hand_landmarks
+    if hands:
+        for hand in hands: 
+            drawing.draw_landmarks(frame,hand)
+            landmark=hand.landmark
+            for id,landmark in enumerate (landmark):
+                x=int(landmark.x*frame_width)
+                y=int(landmark.y*frame_height)
+                
+                if id == 8:
+                    cv2.circle(img=frame,center=(x,y),radius=20,color=(0 ,255,255))
+                    index_x=screen_width/frame_width*x
+                    index_y=screen_height/frame_height*y
+                    pyautogui.moveTo(index_x,index_y)
+                if id == 4 :
+                    cv2.circle(img=frame,center=(x,y),radius=20,color=(0 ,255,255))
+                    thumb_x=screen_width/frame_width*x
+                    thumb_y=screen_height/frame_height*y
+                    print('outside',abs(index_y-thumb_y))
+                    if abs(index_y-thumb_y) <25:
+                        pyautogui.click()
+                        pyautogui.sleep(1)
+                        print("click")
+
+    cv2.imshow('virual mouse',frame)
+    cv2.waitKey(1)
+    
+cam.release()
+cv2.destroyAllWindows()
